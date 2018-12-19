@@ -1,0 +1,39 @@
+{
+    "type": "datasource",
+    "name": "Log Insight",
+    "id": "loginsight",
+    
+    "metrics": true,
+    "annotations": true,
+  
+    "info": {
+      "description": "Log Insight Data Source for Grafana",
+      "author": {
+        "name": "Grafana Labs",
+        "url": "https://grafana.com"
+      },
+      "logos": {
+        "small": "img/loginsights.jpeg",
+        "large": "img/loginsights.jpeg"
+      },
+      "version": "1.0.0",
+      "updated": "2018-06-20"
+    },
+    "dependencies": {
+      "grafanaVersion": "5.x.x"
+    },
+    "routes": [
+      {
+        "path": "loginsight",
+        "method": "POST",
+        "url": "{{.JsonData.logInsightHost}}",
+        "sessionAuth": {
+          "url": "{{.JsonData.logInsightHost}}/api/v1/sessions",
+          "params": {
+            "username": "{{.JsonData.username}}",
+            "password": "{{.SecureJsonData.password}}"
+          }
+        }
+      }
+    ]
+  }
