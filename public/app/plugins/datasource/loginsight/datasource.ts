@@ -7,14 +7,15 @@ export class LogInsightDatasource {
 
   /** @ngInject */
   constructor(instanceSettings, private $q, private backendSrv, private templateSrv, private timeSrv) {
-    this.host = instanceSettings.logInsightHost;
-    this.username = instanceSettings.logInsightUsername;
+    this.host = instanceSettings.current.jsonData.logInsightHost;
+    this.username = instanceSettings.current.jsonData.logInsightUsername;
     this.authenticationType = 'session';
   }
 
   private request(method, url, data?) {
     const options: any = {
-      url: this.host + '/' + url,
+      // url: this.host + '/' + url,
+      url: url,
       method: method,
       data: data,
     };
@@ -23,7 +24,11 @@ export class LogInsightDatasource {
   }
 
   private get(url: string) {
-    return this.request('GET', this.host + url).then(results => {
+    // return this.request('GET', this.host + url).then(results => {
+    //   results.data.$$config = results.config;
+    //   return results.data;
+    // });
+    return this.request('GET', url).then(results => {
       results.data.$$config = results.config;
       return results.data;
     });
@@ -78,7 +83,7 @@ export class LogInsightDatasource {
     //   title: 'Error'
     // });
 
-    return this.get('/loginsight/api/v1/sessions/current').then(
+    return this.get('http://localhost:3000/api/datasources/proxy/7/api/v1/sessions/current').then(
       response => {
         return { status: 'success', message: 'Successfully retrieve current session' };
       },
