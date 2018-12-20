@@ -73,7 +73,9 @@ func (provider *sessionTokenProvider) getSessionToken(data templateData) (string
 	}
 
 	getTokenReq, _ := http.NewRequest("POST", urlInterpolated, bytes.NewBufferString(
-		`{"username":"user", "password":"password"}`))
+		fmt.Sprintf(`{"username":"%s", "password":"%s"}`,
+			params.Get("username"),
+			params.Get("password"))))
 	getTokenReq.Header.Add("Content-Type", "application/json")
 
 	resp, err := client.Do(getTokenReq)
