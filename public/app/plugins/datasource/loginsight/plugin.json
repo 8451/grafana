@@ -27,7 +27,7 @@
         "path": "loginsight",
         "method": "GET",
         "url": "{{.JsonData.logInsightHost}}",
-        "sessionAuth": {
+        "tokenAuth": {
           "url": "{{.JsonData.logInsightHost}}/api/v1/sessions",
           "params": {
             "username": "{{.JsonData.username}}",
