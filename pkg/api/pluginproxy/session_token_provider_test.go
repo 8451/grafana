@@ -1,8 +1,10 @@
 package pluginproxy
 
 import (
-	"context"
+	"net/url"
 	"testing"
+	"time"
+
 	//"time"
 
 	"github.com/grafana/grafana/pkg/models"
@@ -38,8 +40,12 @@ func TestSessionToken(t *testing.T) {
 		ds := &models.DataSource{Id: 1, Version: 2}
 
 		Convey("should fetch token using username and password", func() {
-			getSessionTokenSource = func(ctx context.Context, token string) (string, error) {
-				return "abc", nil
+			getSessionTokenSource = func(urlInterpolated string, params url.Values) (sessionToken, error) {
+				return sessionToken{time.Now(),
+					time.Now().String(),
+					"abc",
+					"user",
+					1800}, nil
 			}
 			provider := newSessionTokenProvider(ds, pluginRoute)
 			token, err := provider.getSessionToken(templateData)
