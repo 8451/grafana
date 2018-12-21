@@ -2,7 +2,6 @@ package pluginproxy
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -72,23 +71,7 @@ func (provider *sessionTokenProvider) getSessionToken(data templateData) (string
 		params.Add(key, interpolatedParam)
 	}
 
-	getTokenReq, _ := http.NewRequest("POST", urlInterpolated, bytes.NewBufferString(
-		fmt.Sprintf(`{"username":"%s", "password":"%s"}`,
-			params.Get("username"),
-			params.Get("password"))))
-	getTokenReq.Header.Add("Content-Type", "application/json")
-
-	resp, err := client.Do(getTokenReq)
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-
-	var token sessionToken
-	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
-		return "", err
-	}
+	token, err := getSessionTokenSource(urlInterpolated, params)
 
 	expiresOnEpoch, _ := strconv.ParseInt(token.ExpiresOnString, 10, 64)
 	token.ExpiresOn = time.Unix(expiresOnEpoch, 0)
@@ -99,7 +82,33 @@ func (provider *sessionTokenProvider) getSessionToken(data templateData) (string
 	return token.SessionToken, nil
 }
 
-var getSessionTokenSource = func(ctx context.Context, token string) (string, error) {
+var getSessionTokenSource = func(urlInterpolated string, params url.Values) (sessionToken, error) {
+
+	getTokenReq, _ := http.NewRequest("POST", urlInterpolated, bytes.NewBufferString(
+		fmt.Sprintf(`{"username":"%s", "password":"%s"}`,
+			params.Get("username"),
+			params.Get("password"))))
+	getTokenReq.Header.Add("Content-Type", "application/json")
+
+	resp, err := client.Do(getTokenReq)
+	if err != nil {
+		return sessionToken{}, err
+	}
+
+	defer resp.Body.Close()
+
+	var token sessionToken
+	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
+		return sessionToken{}, err
+	}
+	// if the actual expiration time isn't set on the response
+	if len(token.ExpiresOnString) == 0 {
+		// Set the expiration time to half the ttl value to ensure it gets invalidated in cache before it
+		// actually expires. Using half the ttl instead of calculating response time on the request to mint
+		// the session to allow a larger buffer for error
+		token.ExpiresOn = time.Now().Add(time.Second * time.Duration(token.Ttl/2))
+		token.ExpiresOnString = token.ExpiresOn.String()
+	}
 
 	return token, nil
 }
