@@ -51,7 +51,12 @@ func ApplyRoute(ctx context.Context, req *http.Request, proxyPath string, route 
 		tokenProvider := newSessionTokenProvider(ds, route)
 
 		if route.TokenAuth != nil {
-			if token, err := tokenProvider.getSessionToken(data); err != nil {
+			httpClient, getHttpClientError := ds.GetHttpClient()
+			if getHttpClientError != nil {
+				logger.Error("Unable to retrieve HttpClient from datasource in DSAuthProvider",
+					getHttpClientError)
+			}
+			if token, err := tokenProvider.getSessionToken(data, httpClient); err != nil {
 				logger.Error("Failed to get access token", "error", err)
 			} else {
 				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
