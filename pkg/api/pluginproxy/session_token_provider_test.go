@@ -1,6 +1,7 @@
 package pluginproxy
 
 import (
+	"net/http"
 	"net/url"
 	"testing"
 	"time"
@@ -40,7 +41,7 @@ func TestSessionToken(t *testing.T) {
 		ds := &models.DataSource{Id: 1, Version: 2}
 
 		Convey("should fetch token using username and password", func() {
-			getSessionTokenSource = func(urlInterpolated string, params url.Values) (sessionToken, error) {
+			getSessionTokenSource = func(urlInterpolated string, params url.Values, client *http.Client) (sessionToken, error) {
 				return sessionToken{time.Now(),
 					time.Now().String(),
 					"abc",
@@ -48,7 +49,9 @@ func TestSessionToken(t *testing.T) {
 					1800}, nil
 			}
 			provider := newSessionTokenProvider(ds, pluginRoute)
-			token, err := provider.getSessionToken(templateData)
+
+			// doesn't matter what httpClient is, mock this later
+			token, err := provider.getSessionToken(templateData, nil)
 			So(err, ShouldBeNil)
 
 			So(token, ShouldEqual, "abc")

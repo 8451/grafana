@@ -47,7 +47,7 @@ func newSessionTokenProvider(ds *models.DataSource, pluginRoute *plugins.AppPlug
 	}
 }
 
-func (provider *sessionTokenProvider) getSessionToken(data templateData) (string, error) {
+func (provider *sessionTokenProvider) getSessionToken(data templateData, httpClient *http.Client) (string, error) {
 	sessionTokenCache.Lock()
 	defer sessionTokenCache.Unlock()
 	if cachedToken, found := sessionTokenCache.cache[provider.getSessionTokenCacheKey()]; found {
@@ -71,7 +71,7 @@ func (provider *sessionTokenProvider) getSessionToken(data templateData) (string
 		params.Add(key, interpolatedParam)
 	}
 
-	token, err := getSessionTokenSource(urlInterpolated, params)
+	token, err := getSessionTokenSource(urlInterpolated, params, httpClient)
 
 	expiresOnEpoch, _ := strconv.ParseInt(token.ExpiresOnString, 10, 64)
 	token.ExpiresOn = time.Unix(expiresOnEpoch, 0)
@@ -82,7 +82,7 @@ func (provider *sessionTokenProvider) getSessionToken(data templateData) (string
 	return token.SessionToken, nil
 }
 
-var getSessionTokenSource = func(urlInterpolated string, params url.Values) (sessionToken, error) {
+var getSessionTokenSource = func(urlInterpolated string, params url.Values, client *http.Client) (sessionToken, error) {
 
 	getTokenReq, _ := http.NewRequest("POST", urlInterpolated, bytes.NewBufferString(
 		fmt.Sprintf(`{"username":"%s", "password":"%s"}`,
