@@ -75,12 +75,6 @@ export class LogInsightDatasource {
   }
 
   testDatasource() {
-    // return this.$q.when({
-    //   status: 'error',
-    //   message: 'Data Source is just a template and has not been implemented yet.',
-    //   title: 'Error'
-    // });
-
     return this.get(this.url + '/loginsight/api/v1/sessions/current').then(
       response => {
         return { status: 'success', message: 'Successfully retrieve current session' };
