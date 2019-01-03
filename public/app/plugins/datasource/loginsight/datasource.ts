@@ -61,8 +61,7 @@ export class LogInsightDatasource {
         response => {
             if (response.complete) {
               const data = response.events;
-              const result = {"target": target.refId, type: 'docs', "datapoints": data};
-              return result;
+              return {"target": target.refId, type: 'docs', "datapoints": data};
             } else {
               return {};
             }

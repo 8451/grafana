@@ -12,7 +12,6 @@ class Event {
 }
 
 class Target {
-  hashKey: string;
   refId: string;
   target: string;
 }
