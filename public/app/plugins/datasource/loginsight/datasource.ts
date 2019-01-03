@@ -1,10 +1,12 @@
 import angular from 'angular';
+import {Options} from "./models";
 // import { Event } from './models';
 
 export class LogInsightDatasource {
   host: string;
   username: string;
   url: string;
+  data: any[] = [];
 
   /** @ngInject */
   constructor(instanceSettings, private $q, private backendSrv, private templateSrv, private timeSrv) {
@@ -46,30 +48,43 @@ export class LogInsightDatasource {
   }
 
   query(options) {
-    console.log(options);
-    return this.get(this.url + '/loginsight/api/v1/events').then(
-      response => {
-        if (response.complete) {
-          // const events: Event[] = response.events;
-          const data = [];
-          return { "target": "events", "data": data};
-        } else {
-          return { "target": "events", "data": [] };
-        }
-      },
-      err => {
-        console.log(err);
-        if (err.data && err.data.error) {
-          let message = angular.toJson(err.data.error);
-          if (err.data.error.reason) {
-            message = err.data.error.reason;
-          }
-          return { status: 'error', message: message };
-        } else {
-          return { status: 'error', message: err.status };
-        }
+    const queryOptions: Options = options;
+
+    const requests = [];
+
+    for (const target of queryOptions.targets) {
+      let requestUrl = '/loginsight/api/v1/events';
+      if (target.target) {
+        requestUrl += "?" + target.target;
       }
-    );
+      requests.push(this.get(this.url + requestUrl).then(
+        response => {
+            if (response.complete) {
+              const data = response.events;
+              const result = {"target": target.refId, type: 'docs', "datapoints": data};
+              return result;
+            } else {
+              return {};
+            }
+          },
+          err => {
+            console.log(err);
+            if (err.data && err.data.error) {
+              let message = angular.toJson(err.data.error);
+              if (err.data.error.reason) {
+                message = err.data.error.reason;
+              }
+              return {status: 'error', message: message};
+            } else {
+              return {status: 'error', message: err.status};
+            }
+          }
+        )
+      );
+    }
+    return this.$q.all(requests).then(response => {
+      return {"Name": "Outer Object", "data": response };
+    });
   }
 
   static annotationQuery(options) {
