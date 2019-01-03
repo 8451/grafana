@@ -1,4 +1,5 @@
 import angular from 'angular';
+// import { Event } from './models';
 
 export class LogInsightDatasource {
   host: string;
@@ -32,24 +33,6 @@ export class LogInsightDatasource {
     });
   }
 
-  // private post(url: string, data: any) {
-  //   return this.request('POST', url, data)
-  //     .then(results => {
-  //       results.data.$$config = results.config;
-  //       return results.data;
-  //     })
-  //     .catch(err => {
-  //       if (err.data && err.data.error) {
-  //         throw {
-  //           message: 'Log Insight error: ' + err.data.error.reason,
-  //           error: err.data.error,
-  //         };
-  //       }
-
-  //       throw err;
-  //     });
-  // }
-
   getQ(): any {
     return this.$q;
   }
@@ -63,20 +46,45 @@ export class LogInsightDatasource {
   }
 
   query(options) {
-    throw new Error('Query Support not implemented yet.');
+    console.log(options);
+    return this.get(this.url + '/loginsight/api/v1/events').then(
+      response => {
+        if (response.complete) {
+          // const events: Event[] = response.events;
+          const data = [];
+          return { "target": "events", "data": data};
+        } else {
+          return { "target": "events", "data": [] };
+        }
+      },
+      err => {
+        console.log(err);
+        if (err.data && err.data.error) {
+          let message = angular.toJson(err.data.error);
+          if (err.data.error.reason) {
+            message = err.data.error.reason;
+          }
+          return { status: 'error', message: message };
+        } else {
+          return { status: 'error', message: err.status };
+        }
+      }
+    );
   }
 
-  annotationQuery(options) {
+  static annotationQuery(options) {
+    console.log(options);
     throw new Error('Annotation Support not implemented yet.');
   }
 
-  metricFindQuery(query: string) {
+  static metricFindQuery(query: string) {
+    console.log(query);
     throw new Error('Template Variable Support not implemented yet.');
   }
 
   testDatasource() {
     return this.get(this.url + '/loginsight/api/v1/sessions/current').then(
-      response => {
+      () => {
         return { status: 'success', message: 'Successfully retrieve current session' };
       },
       err => {
