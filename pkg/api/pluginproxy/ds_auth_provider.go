@@ -45,6 +45,28 @@ func ApplyRoute(ctx context.Context, req *http.Request, proxyPath string, route 
 		logger.Error("Failed to render plugin headers", "error", err)
 	}
 
+
+	authenticationType := ds.JsonData.Get("authenticationType").MustString("jwt")
+
+	if authenticationType == "opaque" {
+		tokenProvider := newOpaqueTokenProvider(ds, route)
+
+		if route.TokenAuth != nil {
+			httpClient, getClientErr := ds.GetHttpClient()
+			if getClientErr != nil {
+				logger.Error("Unable to retrieve HttpClient from datasource in DSAuthProvider",
+					getClientErr)
+			}
+		}
+
+		if token, err := tokenProvider.getOpaqueToken(data, httpClient); err != nil {
+			logger.Error("Failed to get opaque access token", "error", err)
+		} else {
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		}
+
+	}
+
 	tokenProvider := newAccessTokenProvider(ds, route)
 
 	if route.TokenAuth != nil {
@@ -55,7 +77,6 @@ func ApplyRoute(ctx context.Context, req *http.Request, proxyPath string, route 
 		}
 	}
 
-	authenticationType := ds.JsonData.Get("authenticationType").MustString("jwt")
 	if route.JwtTokenAuth != nil && authenticationType == "jwt" {
 		if token, err := tokenProvider.getJwtAccessToken(ctx, data); err != nil {
 			logger.Error("Failed to get access token", "error", err)
