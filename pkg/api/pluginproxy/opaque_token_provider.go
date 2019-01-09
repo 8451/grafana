@@ -39,7 +39,7 @@ type opaqueToken struct {
 	Ttl             int       `json:"ttl"`
 }
 
-func newSessionTokenProvider(ds *models.DataSource, pluginRoute *plugins.AppPluginRoute) *opaqueTokenProvider {
+func newOpaqueTokenProvider(ds *models.DataSource, pluginRoute *plugins.AppPluginRoute) *opaqueTokenProvider {
 	return &opaqueTokenProvider{
 		datasourceId:      ds.Id,
 		datasourceVersion: ds.Version,

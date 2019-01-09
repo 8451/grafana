@@ -20,8 +20,8 @@ func TestSessionToken(t *testing.T) {
 			TokenAuth: &plugins.JwtTokenAuth{
 				Url: "{{.JsonData.logInsightHost}}/api/v1/sessions",
 				Params: map[string]string{
-					"username": "{{.JsonData.username}}",
-					"password": "{{.SecureJsonData.password}}",
+					"username":   "{{.JsonData.username}}",
+					"password":   "{{.SecureJsonData.password}}",
 					"tokenField": "{{.JsonData.tokenField}}",
 				},
 			},
@@ -47,7 +47,7 @@ func TestSessionToken(t *testing.T) {
 					"user",
 					1800}, nil
 			}
-			provider := newSessionTokenProvider(ds, pluginRoute)
+			provider := newOpaqueTokenProvider(ds, pluginRoute)
 
 			// doesn't matter what httpClient is, mock this later
 			token, err := provider.getOpaqueToken(templateData, nil)
